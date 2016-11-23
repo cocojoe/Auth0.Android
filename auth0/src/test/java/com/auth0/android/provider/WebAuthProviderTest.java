@@ -25,7 +25,6 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.robolectric.Robolectric;
-import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
@@ -157,6 +156,35 @@ public class WebAuthProviderTest {
 
         final WebAuthProvider instance = WebAuthProvider.getInstance();
         assertThat(instance.getScope(), is("openid email picture"));
+    }
+
+    @Test
+    public void shouldHaveLoggingDisabledByDefault() throws Exception {
+        WebAuthProvider.init(account)
+                .start(activity, callback);
+
+        final WebAuthProvider instance = WebAuthProvider.getInstance();
+        assertFalse(instance.isLoggingEnabled());
+    }
+
+    @Test
+    public void shouldEnableLogging() throws Exception {
+        WebAuthProvider.init(account)
+                .setLogging(true)
+                .start(activity, callback);
+
+        final WebAuthProvider instance = WebAuthProvider.getInstance();
+        assertTrue(instance.isLoggingEnabled());
+    }
+
+    @Test
+    public void shouldDisableLogging() throws Exception {
+        WebAuthProvider.init(account)
+                .setLogging(false)
+                .start(activity, callback);
+
+        final WebAuthProvider instance = WebAuthProvider.getInstance();
+        assertFalse(instance.isLoggingEnabled());
     }
 
     @Test
