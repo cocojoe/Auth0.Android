@@ -71,6 +71,7 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.isNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -1295,6 +1296,45 @@ public class AuthenticationAPIClientTest {
         assertThat(secondRequest.getPath(), equalTo("/tokeninfo"));
 
         assertThat(callback, hasPayloadOfType(Authentication.class));
+    }
+
+    @Test
+    public void shouldRefreshCredentials() throws Exception {
+        mockAPI.willReturnSuccessfulLogin();
+
+        final MockAuthenticationCallback<Credentials> callback = new MockAuthenticationCallback<>();
+        client.refreshCredentials("refreshToken")
+                .start(callback);
+
+        final RecordedRequest request = mockAPI.takeRequest();
+        assertThat(request.getHeader("Accept-Language"), is(getDefaultLocale()));
+        assertThat(request.getPath(), equalTo("/oauth/token"));
+
+        Map<String, String> body = bodyFromRequest(request);
+        assertThat(body, hasEntry("client_id", CLIENT_ID));
+        assertThat(body, hasEntry("refresh_token", "refreshToken"));
+        assertThat(body, hasEntry("grant_type", "refresh_token"));
+
+        assertThat(callback, hasPayloadOfType(Credentials.class));
+    }
+
+    @Test
+    public void shouldRefreshCredentialsSync() throws Exception {
+        mockAPI.willReturnSuccessfulLogin();
+
+        Credentials credentials = client.refreshCredentials("refreshToken")
+                .execute();
+
+        final RecordedRequest request = mockAPI.takeRequest();
+        assertThat(request.getHeader("Accept-Language"), is(getDefaultLocale()));
+        assertThat(request.getPath(), equalTo("/oauth/token"));
+
+        Map<String, String> body = bodyFromRequest(request);
+        assertThat(body, hasEntry("client_id", CLIENT_ID));
+        assertThat(body, hasEntry("refresh_token", "refreshToken"));
+        assertThat(body, hasEntry("grant_type", "refresh_token"));
+
+        assertThat(credentials, is(notNullValue()));
     }
 
     @Test
